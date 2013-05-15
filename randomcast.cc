@@ -34,7 +34,7 @@ int RandomCast::nextNode(int node) {
 	double r = rand()*1.0/RAND_MAX;
 	//printf("%f\n", r);
 	double cumulation = 0.0;
-	for (int i = 0; i < neighbors.size(); ++i) {
+	for (int i = 0; i < (int)neighbors.size(); ++i) {
 		cumulation += neighbors[i].first;
 		if (cumulation > r)
 			return neighbors[i].second;

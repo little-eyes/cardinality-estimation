@@ -1,6 +1,6 @@
 CXX = g++
-CXXFLAGS = -g -c -Wall -pthread
-LXXFLAGS = -g -Wall -pthread
+CXXFLAGS = -g -c -Wall
+LXXFLAGS = -g -Wall
 DEPS = graph.h estimator.h randomcast.h
 OBJS = graph.o estimator.o randomcast.o driver.o
 
