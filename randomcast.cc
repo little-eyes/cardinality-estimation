@@ -20,7 +20,7 @@ RandomCast::RandomCast(Graph *graph) {
 };
 
 RandomCast::~RandomCast() {
-	delete __Graph;
+
 };
 
 int RandomCast::absorb(int node, int ttl) {

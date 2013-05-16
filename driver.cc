@@ -86,8 +86,8 @@ void experiment(FILE *fp, int nodes, double density,
 	fprintf(fp, "%d,%d,%d,%d,%d,%d\n", nodes, xprobes, xcollisions, xd, xdmin, xdmax);
 	fflush(fp);
 	//display(estimator, collisions, probes);
-	delete randomcast;
 	delete graph;
+	delete randomcast;
 	delete estimator;
 }
 
