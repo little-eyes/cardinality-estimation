@@ -32,11 +32,13 @@ void display(MaxLikelihoodEstimator *estimator, int collisions, int probes) {
 }
 */
 
-void experiment(FILE *fp, int nodes, double density, int experiments, int ttl) {
+void experiment(FILE *fp, int nodes, double density, 
+				int experiments, int ttl, double confidence) {
 	map <int, int> records;
 	int collisions = 0, probes = 0, d = 0, dmax = 0, dmin = 0;
+	int error = -1, xd = 0, xdmax = 0, xdmin = 0, xprobes = 0, xcollisions = 0;
 	Graph *graph = new Graph(nodes, density);
-	//graph->printGraph();
+	graph->dumpGraphStatistics();
 	RandomCast *randomcast= new RandomCast(graph);
 	MaxLikelihoodEstimator *estimator = new MaxLikelihoodEstimator();
 	for (int iter = 0; iter < experiments; ++iter) {
@@ -47,10 +49,24 @@ void experiment(FILE *fp, int nodes, double density, int experiments, int ttl) {
 		else {
 			records[node] += 1;
 			collisions += 1;
-			d = estimator->estimateCardinality(collisions, probes);
-			dmax = estimator->estimateCardinalityUpperBound(collisions, probes);
-			dmin = estimator->estimateCardinalityLowerBound(collisions, probes);
-			fprintf(fp, "%d,%d,%d,%d,%d,%d\n", nodes, probes, collisions, d, dmin, dmax);
+			d = estimator->estimateCardinality(collisions, probes+1);
+			dmax = estimator->estimateCardinalityUpperBound(collisions, probes+1);
+			dmin = estimator->estimateCardinalityLowerBound(collisions, probes+1);
+			if (error < 0 || abs(nodes - d) < error) {
+				xd = d;
+				xdmax = dmax;
+				xdmin = dmin;
+				xprobes = probes + 1;
+				xcollisions = collisions;
+			}
+			// confidence interval satisfied.
+			if (error*1.0/nodes < 1 - confidence) {
+				fprintf(fp, "%d,%d,%d,%d,%d,%d\n", nodes, xprobes, 
+					xcollisions, xd, xdmin, xdmax);
+				fflush(fp);
+				return;
+			}
+			//fprintf(fp, "%d,%d,%d,%d,%d,%d\n", nodes, probes, collisions, d, dmin, dmax);
 			//display(estimator, collisions, probes+1);
 		}
 		++probes;
@@ -59,7 +75,15 @@ void experiment(FILE *fp, int nodes, double density, int experiments, int ttl) {
 	d = estimator->estimateCardinality(collisions, probes);
 	dmax = estimator->estimateCardinalityUpperBound(collisions, probes);
 	dmin = estimator->estimateCardinalityLowerBound(collisions, probes);
-	fprintf(fp, "%d,%d,%d,%d,%d,%d\n", nodes, probes, collisions, d, dmin, dmax);
+	if (error < 0 || abs(nodes - d) < error) {
+		xd = d;
+		xdmax = dmax;
+		xdmin = dmin;
+		xprobes = probes;
+		xcollisions = collisions;
+	}
+	fprintf(fp, "%d,%d,%d,%d,%d,%d\n", nodes, xprobes, xcollisions, xd, xdmin, xdmax);
+	fflush(fp);
 	//display(estimator, collisions, probes);
 	delete graph;
 	delete randomcast;
@@ -81,9 +105,8 @@ int main(int argc, char **argv) {
 	printf("%s\n", name);
 	FILE *data = fopen(name, "w");
 	for (int n = 0; n < 1000; ++n) {
-		experiment(data, nodes, density, 5*int(sqrt(nodes)), nodes);
+		experiment(data, nodes, density, nodes, nodes, 0.95);
 		printf("Running experiment %d ...\n", n);
-		fflush(data);
 	}
 	fclose(data);
 	return 0;

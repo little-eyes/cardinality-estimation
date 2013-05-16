@@ -9,25 +9,42 @@
 #define _GRAPH_H
 
 #include <vector>
+#include <set>
 #include <algorithm>
 
 
 namespace std {
 
+class GraphNode {
+	
+public:
+	GraphNode(int node);
+	void setTransitionProbability(double p);
+	double getTransitionProbability();
+	int getNodeId();
+
+private:
+	int __NodeId;
+	double __Probability;
+};
+
 class Graph {
 
 public:
 	Graph(int n, double density);
+	~Graph();
 	int getDegree(int node);
 	vector < pair<double, int> > getNeighbors(int node);
+	bool hasNeighbor(int node, int neighbor);
 	double getTransitionProbability(int nodei, int nodej);
-	double getTransitionProbability(int nodei);
+	double getTransitionProbability(int node);
 	void printGraph();
+	void dumpGraphStatistics();
 
 private:
 	int __NumberOfNodes;
-	vector < vector<int> > __GraphMap;
-	vector < vector<double> > __TransitionProbability;
+	vector < vector<GraphNode *> > __GraphMap;
+	vector <GraphNode *> __Nodes;
 	void randomEdge(double density);
 	void calculateTransitionProbability();
 };
