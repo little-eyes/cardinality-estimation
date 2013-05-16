@@ -38,7 +38,7 @@ void experiment(FILE *fp, int nodes, double density,
 	int collisions = 0, probes = 0, d = 0, dmax = 0, dmin = 0;
 	int error = -1, xd = 0, xdmax = 0, xdmin = 0, xprobes = 0, xcollisions = 0;
 	Graph *graph = new Graph(nodes, density);
-	graph->dumpGraphStatistics();
+	//graph->dumpGraphStatistics();
 	RandomCast *randomcast= new RandomCast(graph);
 	MaxLikelihoodEstimator *estimator = new MaxLikelihoodEstimator();
 	for (int iter = 0; iter < experiments; ++iter) {
@@ -64,6 +64,9 @@ void experiment(FILE *fp, int nodes, double density,
 					fprintf(fp, "%d,%d,%d,%d,%d,%d\n", nodes, xprobes, 
 						xcollisions, xd, xdmin, xdmax);
 					fflush(fp);
+					delete randomcast;
+					delete graph;
+					delete estimator;
 					return;
 				}
 			}
@@ -83,8 +86,8 @@ void experiment(FILE *fp, int nodes, double density,
 	fprintf(fp, "%d,%d,%d,%d,%d,%d\n", nodes, xprobes, xcollisions, xd, xdmin, xdmax);
 	fflush(fp);
 	//display(estimator, collisions, probes);
-	delete graph;
 	delete randomcast;
+	delete graph;
 	delete estimator;
 }
 
@@ -102,7 +105,7 @@ int main(int argc, char **argv) {
 	
 	printf("%s\n", name);
 	FILE *data = fopen(name, "w");
-	for (int n = 0; n < 1000; ++n) {
+	for (int n = 0; n < 1; ++n) {
 		experiment(data, nodes, density, nodes, nodes, 0.95);
 		printf("Running experiment %d ...\n", n);
 	}

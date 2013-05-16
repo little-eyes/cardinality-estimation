@@ -18,10 +18,11 @@ class RandomCast {
 
 public:
 	RandomCast(Graph *graph);
+	~RandomCast();
 	int absorb(int node, int ttl);
 
 private:
-	Graph * __Graph;
+	Graph *__Graph;
 	int nextNode(int node);
 };
 	

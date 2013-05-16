@@ -17,7 +17,11 @@ namespace std {
 RandomCast::RandomCast(Graph *graph) {
 	__Graph = graph;
 	srand(time(NULL));
-}
+};
+
+RandomCast::~RandomCast() {
+	delete __Graph;
+};
 
 int RandomCast::absorb(int node, int ttl) {
 	while (ttl--) {
@@ -26,7 +30,7 @@ int RandomCast::absorb(int node, int ttl) {
 		node = next;
 	}
 	return node;
-}
+};
 
 int RandomCast::nextNode(int node) {
 	vector < pair<double, int> > neighbors = __Graph->getNeighbors(node);
@@ -40,6 +44,6 @@ int RandomCast::nextNode(int node) {
 			return neighbors[i].second;
 	}
 	return neighbors[neighbors.size()-1].second;
-}
+};
 
 }

@@ -35,18 +35,26 @@ int GraphNode::getNodeId() {
 Graph::Graph(int nodes, double density) {
 	//printf("%d %.2f\n", nodes, density);
 	__NumberOfNodes = nodes;
-	for (int i = 0; i < __NumberOfNodes; ++i) {
-		vector <GraphNode *> row;
-		__GraphMap.push_back(row);
-		GraphNode *nd = new GraphNode(i);
-		__Nodes.push_back(nd);
+	try {
+		for (int i = 0; i < __NumberOfNodes; ++i) {
+			vector <GraphNode *> row;
+			__GraphMap.push_back(row);
+			GraphNode *nd = new GraphNode(i);
+			__Nodes.push_back(nd);
+		}
+	} catch (bad_alloc &e) {
+		printf("%s\n", e.what());
 	}
 
 	// make sure the connectivity of the graph.
-	for (int u = 0; u < __NumberOfNodes-1; ++u) {
-		// insert itself.
-		GraphNode *nd = new GraphNode(u+1);
-		__GraphMap[u].push_back(nd);
+	try {
+		for (int u = 0; u < __NumberOfNodes-1; ++u) {
+			// insert itself.
+			GraphNode *nd = new GraphNode(u+1);
+			__GraphMap[u].push_back(nd);
+		}
+	} catch (bad_alloc &e) {
+		printf("%s\n", e.what());
 	}
 	
 	randomEdge(density);
@@ -57,18 +65,15 @@ Graph::Graph(int nodes, double density) {
 Graph::~Graph() {
 	// clear the __GraphMap.
 	for (int i = 0; i < __NumberOfNodes; ++i) {
-		for (int j = __GraphMap[i].size()-1; j >= 0; --j) {
-			GraphNode *nd = __GraphMap[i][j];
-			__GraphMap[i].pop_back();
-			delete nd;
-		}
+		for (int j = 0; j < __GraphMap[i].size(); ++j)
+			delete __GraphMap[i][j];
+		__GraphMap[i].clear(); 
 	}
+	__GraphMap.clear();
 	// clear the __Nodes.
-	for (int i = __NumberOfNodes-1; i >= 0; --i) {
-		GraphNode *nd = __Nodes[i];
-		__Nodes.pop_back();
-		delete nd;
-	}
+	for (int i = 0; i < __Nodes.size(); ++i) 
+		delete __Nodes[i];
+	__Nodes.clear();
 };
 
 bool Graph::hasNeighbor(int node, int neighbor) {
@@ -88,11 +93,15 @@ void Graph::randomEdge(double density) {
 		double r = rand()*1.0 / RAND_MAX;
 		//printf("%.2f\n", r);
 		if (r >= 0.5) {
-			GraphNode *nd_j = new GraphNode(node_j);
-			__GraphMap[node_i].push_back(nd_j);
-			GraphNode *nd_i = new GraphNode(node_i);
-			__GraphMap[node_j].push_back(nd_i);
-			--count;
+			try {
+				GraphNode *nd_j = new GraphNode(node_j);
+				__GraphMap[node_i].push_back(nd_j);
+				GraphNode *nd_i = new GraphNode(node_i);
+				__GraphMap[node_j].push_back(nd_i);
+				--count;
+			} catch (bad_alloc &e) {
+				printf("%s\n", e.what());
+			}
 		}
 	}
 };
