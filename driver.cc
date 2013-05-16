@@ -10,6 +10,8 @@
 #include "randomcast.h"
 #include "estimator.h"
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <vector>
 #include <map>
@@ -17,11 +19,6 @@
 #include <cmath>
 
 using namespace std;
-
-static const int GRAPH_NODES = 5000;
-static const double GRAPH_DENSITY = 0.3;
-static const int MAX_EXPERIMENTS = 500;
-static const int TTL = 100;
 
 /*
 void display(MaxLikelihoodEstimator *estimator, int collisions, int probes) {
@@ -69,10 +66,22 @@ void experiment(FILE *fp, int nodes, double density, int experiments, int ttl) {
 	delete estimator;
 }
 
-int main() {
-	FILE *data = fopen("out/n_1000_stats.csv", "w");
+int main(int argc, char **argv) {
+	if (argc != 5) exit(1);
+	int nodes = atoi(argv[2]);
+	double density = atof(argv[4]);
+	
+	printf("%d %f\n", nodes, density);
+	char name[1000];
+	memset(name, 0, sizeof(name));
+	strcat(name, "out/n_");
+	strcat(name, argv[2]);
+	strcat(name, "_stats.csv");
+	
+	printf("%s\n", name);
+	FILE *data = fopen(name, "w");
 	for (int n = 0; n < 1000; ++n) {
-		experiment(data, 1000, 0.3, 5*int(sqrt(1000)), 500);
+		experiment(data, nodes, density, 5*int(sqrt(nodes)), nodes);
 		printf("Running experiment %d ...\n", n);
 		fflush(data);
 	}
