@@ -70,10 +70,10 @@ void experiment(FILE *fp, int nodes, double density, int experiments, int ttl) {
 }
 
 int main() {
-	FILE *data = fopen("stats.csv", "w");
-	for (int n = 100; n < 100000; n += 100) {
-		experiment(data, n, 0.3, 5*int(sqrt(n)), n/2);
-		printf("Running experiment %d ...\n", n/100);
+	FILE *data = fopen("out/n_1000_stats.csv", "w");
+	for (int n = 0; n < 1000; ++n) {
+		experiment(data, 1000, 0.3, 5*int(sqrt(1000)), 500);
+		printf("Running experiment %d ...\n", n);
 		fflush(data);
 	}
 	fclose(data);
