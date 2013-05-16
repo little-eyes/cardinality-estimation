@@ -58,19 +58,17 @@ void experiment(FILE *fp, int nodes, double density,
 				xdmin = dmin;
 				xprobes = probes + 1;
 				xcollisions = collisions;
+				error = abs(nodes - d);
+				// confidence interval satisfied.
+				if (error*1.0/nodes < 1 - confidence) {
+					fprintf(fp, "%d,%d,%d,%d,%d,%d\n", nodes, xprobes, 
+						xcollisions, xd, xdmin, xdmax);
+					fflush(fp);
+					return;
+				}
 			}
-			// confidence interval satisfied.
-			if (error*1.0/nodes < 1 - confidence) {
-				fprintf(fp, "%d,%d,%d,%d,%d,%d\n", nodes, xprobes, 
-					xcollisions, xd, xdmin, xdmax);
-				fflush(fp);
-				return;
-			}
-			//fprintf(fp, "%d,%d,%d,%d,%d,%d\n", nodes, probes, collisions, d, dmin, dmax);
-			//display(estimator, collisions, probes+1);
 		}
 		++probes;
-		//printf("[ ** Probe %d ** ]\n", iter);
 	}
 	d = estimator->estimateCardinality(collisions, probes);
 	dmax = estimator->estimateCardinalityUpperBound(collisions, probes);
