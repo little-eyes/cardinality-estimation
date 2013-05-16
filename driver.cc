@@ -105,7 +105,7 @@ int main(int argc, char **argv) {
 	
 	printf("%s\n", name);
 	FILE *data = fopen(name, "w");
-	for (int n = 0; n < 1; ++n) {
+	for (int n = 0; n < 500; ++n) {
 		experiment(data, nodes, density, nodes, nodes, 0.95);
 		printf("Running experiment %d ...\n", n);
 	}
