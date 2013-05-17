@@ -1,16 +1,17 @@
 CXX = g++
 CXXFLAGS = -g -c
 LXXFLAGS = -g
-DEPS = graph.h estimator.h randomcast.h
+DEPS = graph.h estimator.h randomcast.h glog/logging.h
 OBJS = graph.o estimator.o randomcast.o driver.o
+LDFLAGS = -L./glog/ -lglog
 
 all: simulator
 
 simulator: $(OBJS) 
-	$(CXX) -o simulator $(LXXFLAGS) $(OBJS)
+	$(CXX) -o simulator $(LXXFLAGS) $(LDFLAGS) $(OBJS)
 
 driver.o: $(DEPS) driver.cc
-	$(CXX) $(CXXFLAGS) driver.cc
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) driver.cc
 
 graph.o: $(DEPS) graph.cc
 	$(CXX) $(CXXFLAGS) graph.cc

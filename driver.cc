@@ -9,6 +9,7 @@
 #include "graph.h"
 #include "randomcast.h"
 #include "estimator.h"
+#include "glog/logging.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -92,6 +93,7 @@ void experiment(FILE *fp, int nodes, double density,
 }
 
 int main(int argc, char **argv) {
+	google::InitGoogleLogging(argv[0]);
 	if (argc != 5) exit(1);
 	int nodes = atoi(argv[2]);
 	double density = atof(argv[4]);
