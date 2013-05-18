@@ -5,13 +5,12 @@
  **/
 
 #include "graph.h"
+#include "glog/logging.h"
 #include <vector>
-#include <set>
 #include <cstdlib>
 #include <cstdio>
 #include <ctime>
 #include <algorithm>
-#include <utility>
 
 namespace std {
 
@@ -33,123 +32,114 @@ int GraphNode::getNodeId() {
 };
 
 Graph::Graph(int nodes, double density) {
-	//printf("%d %.2f\n", nodes, density);
 	__NumberOfNodes = nodes;
 	try {
-		for (int i = 0; i < __NumberOfNodes; ++i) {
-			vector <GraphNode *> row;
-			__GraphMap.push_back(row);
-			GraphNode *nd = new GraphNode(i);
-			__Nodes.push_back(nd);
-		}
+		__GraphMap = new int[nodes * nodes + 5];
+		__ProbabilityMap = new double[nodes * nodes + 5];
+		__DegreeTable = new int[nodes + 5];
 	} catch (bad_alloc &e) {
-		printf("%s\n", e.what());
+		LOG(ERROR) << "Allocation exception to " << nodes * nodes << " nodes.";
+		LOG(ERROR) << e.what();
 	}
 
-	// make sure the connectivity of the graph.
-	try {
-		for (int u = 0; u < __NumberOfNodes-1; ++u) {
-			// insert itself.
-			GraphNode *nd = new GraphNode(u+1);
-			__GraphMap[u].push_back(nd);
-		}
-	} catch (bad_alloc &e) {
-		printf("%s\n", e.what());
+	for (int i = 0; i < nodes*nodes; ++i) {
+		__GraphMap[i] = 0;
+		__ProbabilityMap[i] = 0.0;
 	}
-	
+	for (int i = 0; i < nodes; ++i)
+		__DegreeTable[i] = 0;
+
 	randomEdge(density);
 	
 	calculateTransitionProbability();
 };
 
 Graph::~Graph() {
-	// clear the __GraphMap.
-	for (int i = 0; i < __NumberOfNodes; ++i) {
-		for (int j = 0; j < __GraphMap[i].size(); ++j)
-			delete __GraphMap[i][j];
-		__GraphMap[i].clear(); 
-	}
-	__GraphMap.clear();
-	// clear the __Nodes.
-	for (int i = 0; i < __Nodes.size(); ++i) 
-		delete __Nodes[i];
-	__Nodes.clear();
+	delete [] __GraphMap;
+	delete [] __ProbabilityMap;
+	delete [] __DegreeTable;
 };
 
 bool Graph::hasNeighbor(int node, int neighbor) {
-	for (int i = 0; i < __GraphMap[node].size(); ++i) 
-		if (__GraphMap[node][i]->getNodeId() == neighbor) return true;
-	return false;
+	return __GraphMap[PositionToIndex(node, neighbor)];
 };
 
 void Graph::randomEdge(double density) {
 	int count = int(density * __NumberOfNodes * __NumberOfNodes);
-	//printf("%d\n", count);
+	
+	// random edges.
 	srand(time(NULL));
 	while (count) {
 		int node_i = rand() % __NumberOfNodes;
 		int node_j = rand() % __NumberOfNodes;
 		if (hasNeighbor(node_i, node_j)) continue;
 		double r = rand()*1.0 / RAND_MAX;
-		//printf("%.2f\n", r);
-		if (r >= 0.5) {
-			try {
-				GraphNode *nd_j = new GraphNode(node_j);
-				__GraphMap[node_i].push_back(nd_j);
-				GraphNode *nd_i = new GraphNode(node_i);
-				__GraphMap[node_j].push_back(nd_i);
-				--count;
-			} catch (bad_alloc &e) {
-				printf("%s\n", e.what());
-			}
-		}
+		if (r < 0.5) continue;
+
+		__GraphMap[PositionToIndex(node_i, node_j)] = 1;
+		__GraphMap[PositionToIndex(node_j, node_i)] = 1;
+		__DegreeTable[node_i] += 1;
+		__DegreeTable[node_j] += 1;
+		--count;
 	}
+
+	// mark the connection of itself.
+	for (int i = 0; i < __NumberOfNodes; ++i)
+		__GraphMap[PositionToIndex(i, i)] = 1;
+	
+	// guarantee the connection of the graph.
+	for (int i = 0; i < __NumberOfNodes-1; ++i) {
+		__GraphMap[PositionToIndex(i, i+1)] = 1;
+		__GraphMap[PositionToIndex(i+1, i)] = 1;
+	}
+	LOG(INFO) << "Random graph generated ... done!";
 };
 
 void Graph::calculateTransitionProbability() {
 	for (int i = 0; i < __NumberOfNodes; ++i) {
 		int degree_i = getDegree(i);
-		for (int j = 0; j < __GraphMap[i].size(); ++j) {
-			int degree_j = getDegree(__GraphMap[i][j]->getNodeId());
-			__GraphMap[i][j]->setTransitionProbability(1.0/max(degree_i, degree_j));
+		for (int j = 0; j < __NumberOfNodes; ++j) {
+			if (!__GraphMap[PositionToIndex(i, j)]) continue;
+			int degree_j = getDegree(j);
+			__ProbabilityMap[PositionToIndex(i, j)] = (1.0/max(degree_i, degree_j));
 		}
 	}
 	for (int i = 0; i < __NumberOfNodes; ++i) {
 		double probability = 1.0;
-		for (int j = 0; j < __GraphMap[i].size(); ++j)
-				probability -= __GraphMap[i][j]->getTransitionProbability();
-		__Nodes[i]->setTransitionProbability(probability);
+		for (int j = 0; j < __NumberOfNodes; ++j) {
+			if (!__GraphMap[PositionToIndex(i, j)]) continue;
+			probability -= __ProbabilityMap[PositionToIndex(i, j)];
+		}
+		__ProbabilityMap[PositionToIndex(i, i)] = probability;
 	}
+	LOG(INFO) << "Transition probability calculated ... done!";
 };
 
 int Graph::getDegree(int node) {
-	return __GraphMap[node].size();
+	return __DegreeTable[node];
 };
 
 double Graph::getTransitionProbability(int nodei, int nodej) {
-	for (int k = 0; k < __GraphMap[nodei].size(); ++k)
-		if (__GraphMap[nodei][k]->getNodeId() == nodej)
-			return __GraphMap[nodei][k]->getTransitionProbability();
-	return -1.0;
+	return __ProbabilityMap[PositionToIndex(nodei, nodej)];
 };
 
 double Graph::getTransitionProbability(int node) {
-	for (int k = 0; k < __Nodes.size(); ++k)
-		if (__Nodes[k]->getNodeId() == node)
-			return __Nodes[k]->getTransitionProbability();
-	return -1.0;
+	return __ProbabilityMap[PositionToIndex(node, node)];
 };
 
 vector < pair <double, int> > Graph::getNeighbors(int node) {
 	vector < pair <double, int> > neighbors;
-	for (int k = 0; k < __GraphMap[node].size(); ++k) {
+	try {
+		for (int k = 0; k < __NumberOfNodes; ++k) {
+			neighbors.push_back(make_pair(
+				__ProbabilityMap[PositionToIndex(node, k)], k));
+		}
 		neighbors.push_back(make_pair(
-			__GraphMap[node][k]->getTransitionProbability(), 
-			__GraphMap[node][k]->getNodeId()));
+			__ProbabilityMap[PositionToIndex(node, node)], node));
+	} catch (bad_alloc &e) {
+		LOG(ERROR) << e.what();
+		//printf("%s\n", e.what());
 	}
-	neighbors.push_back(make_pair(
-		__Nodes[node]->getTransitionProbability(),
-		__Nodes[node]->getNodeId()));
 	sort(neighbors.begin(), neighbors.end());
 	return neighbors;
 };
@@ -157,9 +147,13 @@ vector < pair <double, int> > Graph::getNeighbors(int node) {
 void Graph::dumpGraphStatistics() {
 	FILE *dump = fopen("out/graph.csv", "a");
 	for (int i = 0; i < __NumberOfNodes; ++i)
-		fprintf(dump, "%d\n", getDegree(__Nodes[i]->getNodeId()));
+		fprintf(dump, "%d\n", getDegree(i));
 	fclose(dump);
 };
+
+int Graph::PositionToIndex(int x, int y) {
+	return x * __NumberOfNodes + y;
+}
 
 /*
 void Graph::printGraph() {

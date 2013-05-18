@@ -9,9 +9,7 @@
 #define _GRAPH_H
 
 #include <vector>
-#include <set>
 #include <algorithm>
-
 
 namespace std {
 
@@ -33,6 +31,9 @@ class Graph {
 public:
 	Graph(int n, double density);
 	~Graph();
+	/*
+	 * Graph class public APIs.
+	 */
 	int getDegree(int node);
 	vector < pair<double, int> > getNeighbors(int node);
 	bool hasNeighbor(int node, int neighbor);
@@ -43,10 +44,14 @@ public:
 
 private:
 	int __NumberOfNodes;
-	vector < vector<GraphNode *> > __GraphMap;
-	vector <GraphNode *> __Nodes;
+	//vector < vector<GraphNode *> > __GraphMap;
+	//vector <GraphNode *> __Nodes;
+	int *__GraphMap;
+	double *__ProbabilityMap;
+	int *__DegreeTable;
 	void randomEdge(double density);
 	void calculateTransitionProbability();
+	int PositionToIndex(int x, int y);
 };
 
 }

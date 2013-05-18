@@ -18,6 +18,7 @@
 #include <map>
 #include <algorithm>
 #include <cmath>
+#include <ctime>
 
 using namespace std;
 
@@ -32,18 +33,30 @@ void display(MaxLikelihoodEstimator *estimator, int collisions, int probes) {
 	printf("Ground truth: d = %d\n", GRAPH_NODES);
 }
 */
+const int GRAPH_GENERATION = 0;
+const int RANDOM_CAST = 1;
 
 void experiment(FILE *fp, int nodes, double density, 
-				int experiments, int ttl, double confidence) {
+				int experiments, int ttl, double confidence,
+				FILE *measure=NULL) {
 	map <int, int> records;
 	int collisions = 0, probes = 0, d = 0, dmax = 0, dmin = 0;
 	int error = -1, xd = 0, xdmax = 0, xdmin = 0, xprobes = 0, xcollisions = 0;
+	clock_t start, end;
+	start = clock();
 	Graph *graph = new Graph(nodes, density);
+	end = clock();
+	fprintf(measure, "%d,%f\n", GRAPH_GENERATION, (end - start)*1.0/CLOCKS_PER_SEC);
+	LOG(INFO) << "Graph is ready ... ";
 	//graph->dumpGraphStatistics();
 	RandomCast *randomcast= new RandomCast(graph);
 	MaxLikelihoodEstimator *estimator = new MaxLikelihoodEstimator();
 	for (int iter = 0; iter < experiments; ++iter) {
+		start = clock();
 		int node = randomcast->absorb(0, ttl);
+		end = clock();
+		fprintf(measure, "%d,%f\n", RANDOM_CAST, (end - start)*1.0/CLOCKS_PER_SEC);
+		fflush(measure);
 		if (records.find(node) == records.end()) {
 			records[node] = 0;
 		}
@@ -93,25 +106,27 @@ void experiment(FILE *fp, int nodes, double density,
 }
 
 int main(int argc, char **argv) {
-	google::InitGoogleLogging(argv[0]);
+	google::InitGoogleLogging("simulator");
 	if (argc != 5) exit(1);
 	int nodes = atoi(argv[2]);
 	double density = atof(argv[4]);
 	
-	printf("%d %f\n", nodes, density);
 	char name[1000];
 	memset(name, 0, sizeof(name));
 	strcat(name, "out/n_");
 	strcat(name, argv[2]);
 	strcat(name, "_stats.csv");
 	
-	printf("%s\n", name);
 	FILE *data = fopen(name, "w");
+	strcat(name, ".perf");
+	FILE *measure = fopen(name, "w");
 	for (int n = 0; n < 500; ++n) {
-		experiment(data, nodes, density, nodes, nodes, 0.95);
-		printf("Running experiment %d ...\n", n);
+		experiment(data, nodes, density, nodes, nodes, 0.95, measure);
+		LOG(INFO) << "Finished experiment " << n;
+		printf("Experiment %d ... done!\n", n);
 	}
 	fclose(data);
+	fclose(measure);
 	return 0;
 }
 
