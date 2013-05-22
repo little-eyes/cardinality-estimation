@@ -16,19 +16,23 @@ namespace std {
 
 RandomCast::RandomCast(Graph *graph) {
 	__Graph = graph;
-	srand(time(NULL));
+	srand((unsigned)time(NULL));
+	srand((unsigned)rand());
+	__TTLLogging = fopen("ttl.csv", "a");
 };
 
 RandomCast::~RandomCast() {
-
+	fclose(__TTLLogging);
 };
 
 int RandomCast::absorb(int node, int ttl) {
 	while (ttl--) {
 		int next = nextNode(node);
-		if (next == node) return node;
+		if (next == node && node > 0) break;
 		node = next;
 	}
+	fprintf(__TTLLogging, "%d\n", node);
+	fflush(__TTLLogging);
 	return node;
 };
 

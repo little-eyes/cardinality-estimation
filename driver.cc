@@ -46,7 +46,10 @@ void experiment(FILE *fp, int nodes, double density,
 	Graph *graph = new Graph(nodes, density);
 	end = clock();
 	fprintf(measure, "%d,%f\n", GRAPH_GENERATION, (end - start)*1.0/CLOCKS_PER_SEC);
-	//graph->dumpGraphStatistics();
+	//graph->dumpGraph("graph.csv");
+	//graph->dumpProbability("prob.csv");
+	//graph->dumpGraphDegreeStatistics("degree.csv");
+	//exit(0);
 	RandomCast *randomcast= new RandomCast(graph);
 	MaxLikelihoodEstimator *estimator = new MaxLikelihoodEstimator();
 	for (int iter = 0; iter < experiments; ++iter) {
@@ -110,7 +113,7 @@ int main(int argc, char **argv) {
 	
 	char name[1000];
 	memset(name, 0, sizeof(name));
-	strcat(name, "n_");
+	strcat(name, "out/n_");
 	strcat(name, argv[2]);
 	strcat(name, "_stats.csv");
 	

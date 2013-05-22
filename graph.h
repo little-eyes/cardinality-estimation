@@ -39,8 +39,9 @@ public:
 	bool hasNeighbor(int node, int neighbor);
 	double getTransitionProbability(int nodei, int nodej);
 	double getTransitionProbability(int node);
-	void printGraph();
-	void dumpGraphStatistics();
+	void dumpGraph(char *uri);
+	void dumpProbability(char *uri);
+	void dumpGraphDegreeStatistics(char *uri);
 
 private:
 	int __NumberOfNodes;

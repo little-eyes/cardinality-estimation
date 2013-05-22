@@ -71,11 +71,12 @@ void Graph::randomEdge(double density) {
 	int count = int(density * __NumberOfNodes * __NumberOfNodes);
 	
 	// random edges.
-	srand(time(NULL));
+	srand((unsigned)time(NULL));
+	srand((unsigned)rand());
 	while (count) {
 		int node_i = rand() % __NumberOfNodes;
 		int node_j = rand() % __NumberOfNodes;
-		if (hasNeighbor(node_i, node_j)) continue;
+		//if (hasNeighbor(node_i, node_j)) continue;
 		double r = rand()*1.0 / RAND_MAX;
 		if (r < 0.5) continue;
 
@@ -148,8 +149,8 @@ vector < pair <double, int> > Graph::getNeighbors(int node) {
 	return __NeighborTable[node];
 };
 
-void Graph::dumpGraphStatistics() {
-	FILE *dump = fopen("out/graph.csv", "a");
+void Graph::dumpGraphDegreeStatistics(char *uri) {
+	FILE *dump = fopen(uri, "w");
 	for (int i = 0; i < __NumberOfNodes; ++i)
 		fprintf(dump, "%d\n", getDegree(i));
 	fclose(dump);
@@ -159,22 +160,26 @@ int Graph::PositionToIndex(int x, int y) {
 	return x * __NumberOfNodes + y;
 }
 
-/*
-void Graph::printGraph() {
-	//for (int i = 0; i < __NumberOfNodes; ++i) {
-	//	for (int j = 0; j < __NumberOfNodes; ++j)
-	//		printf("%d ", __GraphMap[i][j]);
-	//	printf("\n");
-	//}
-	printf("\n=======\n");
-	FILE *fp = fopen("graph.csv", "w");
+
+void Graph::dumpGraph(char *uri) {
+	FILE *fp = fopen(uri, "w");
 	for (int i = 0; i < __NumberOfNodes; ++i) {
 		for (int j = 0; j < __NumberOfNodes; ++j)
-			fprintf(fp, "%.2f ", __TransitionProbability[i][j]);
+			fprintf(fp, "%d,", __GraphMap[PositionToIndex(i, j)]);
 		fprintf(fp, "\n");
 	}
 	fclose(fp);
 };
-*/
+
+void Graph::dumpProbability(char *uri) {
+	FILE *fp = fopen(uri, "w");
+	for (int i = 0; i < __NumberOfNodes; ++i) {
+		for (int j = 0; j < __NumberOfNodes; ++j)
+			fprintf(fp, "%.2f,", __ProbabilityMap[PositionToIndex(i, j)]);
+		fprintf(fp, "\n");
+	}
+	fclose(fp);
+};
+
 
 }

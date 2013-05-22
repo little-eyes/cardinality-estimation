@@ -24,6 +24,7 @@ public:
 private:
 	Graph *__Graph;
 	int nextNode(int node);
+	FILE *__TTLLogging;
 };
 	
 }
