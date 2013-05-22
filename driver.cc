@@ -9,7 +9,6 @@
 #include "graph.h"
 #include "randomcast.h"
 #include "estimator.h"
-#include "glog/logging.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -47,7 +46,6 @@ void experiment(FILE *fp, int nodes, double density,
 	Graph *graph = new Graph(nodes, density);
 	end = clock();
 	fprintf(measure, "%d,%f\n", GRAPH_GENERATION, (end - start)*1.0/CLOCKS_PER_SEC);
-	LOG(INFO) << "Graph is ready ... ";
 	//graph->dumpGraphStatistics();
 	RandomCast *randomcast= new RandomCast(graph);
 	MaxLikelihoodEstimator *estimator = new MaxLikelihoodEstimator();
@@ -106,14 +104,13 @@ void experiment(FILE *fp, int nodes, double density,
 }
 
 int main(int argc, char **argv) {
-	google::InitGoogleLogging("simulator");
 	if (argc != 5) exit(1);
 	int nodes = atoi(argv[2]);
 	double density = atof(argv[4]);
 	
 	char name[1000];
 	memset(name, 0, sizeof(name));
-	strcat(name, "out/n_");
+	strcat(name, "n_");
 	strcat(name, argv[2]);
 	strcat(name, "_stats.csv");
 	
@@ -122,7 +119,6 @@ int main(int argc, char **argv) {
 	FILE *measure = fopen(name, "w");
 	for (int n = 0; n < 500; ++n) {
 		experiment(data, nodes, density, nodes, nodes, 0.95, measure);
-		LOG(INFO) << "Finished experiment " << n;
 		printf("Experiment %d ... done!\n", n);
 	}
 	fclose(data);

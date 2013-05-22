@@ -5,7 +5,6 @@
  **/
 
 #include "graph.h"
-#include "glog/logging.h"
 #include <vector>
 #include <cstdlib>
 #include <cstdio>
@@ -37,9 +36,9 @@ Graph::Graph(int nodes, double density) {
 		__GraphMap = new int[nodes * nodes + 5];
 		__ProbabilityMap = new double[nodes * nodes + 5];
 		__DegreeTable = new int[nodes + 5];
+		__NeighborTable = new vector < pair<double, int> >[nodes * nodes + 5];
 	} catch (bad_alloc &e) {
-		LOG(ERROR) << "Allocation exception to " << nodes * nodes << " nodes.";
-		LOG(ERROR) << e.what();
+		fprintf(stderr, "%s\n", e.what());
 	}
 
 	for (int i = 0; i < nodes*nodes; ++i) {
@@ -52,12 +51,16 @@ Graph::Graph(int nodes, double density) {
 	randomEdge(density);
 	
 	calculateTransitionProbability();
+
+	for (int i = 0; i < nodes; ++i)
+		__NeighborTable[i] = findNeighbors(i);
 };
 
 Graph::~Graph() {
 	delete [] __GraphMap;
 	delete [] __ProbabilityMap;
 	delete [] __DegreeTable;
+	delete [] __NeighborTable;
 };
 
 bool Graph::hasNeighbor(int node, int neighbor) {
@@ -92,7 +95,6 @@ void Graph::randomEdge(double density) {
 		__GraphMap[PositionToIndex(i, i+1)] = 1;
 		__GraphMap[PositionToIndex(i+1, i)] = 1;
 	}
-	LOG(INFO) << "Random graph generated ... done!";
 };
 
 void Graph::calculateTransitionProbability() {
@@ -112,7 +114,6 @@ void Graph::calculateTransitionProbability() {
 		}
 		__ProbabilityMap[PositionToIndex(i, i)] = probability;
 	}
-	LOG(INFO) << "Transition probability calculated ... done!";
 };
 
 int Graph::getDegree(int node) {
@@ -127,7 +128,7 @@ double Graph::getTransitionProbability(int node) {
 	return __ProbabilityMap[PositionToIndex(node, node)];
 };
 
-vector < pair <double, int> > Graph::getNeighbors(int node) {
+vector < pair <double, int> > Graph::findNeighbors(int node) {
 	vector < pair <double, int> > neighbors;
 	try {
 		for (int k = 0; k < __NumberOfNodes; ++k) {
@@ -137,11 +138,14 @@ vector < pair <double, int> > Graph::getNeighbors(int node) {
 		neighbors.push_back(make_pair(
 			__ProbabilityMap[PositionToIndex(node, node)], node));
 	} catch (bad_alloc &e) {
-		LOG(ERROR) << e.what();
-		//printf("%s\n", e.what());
+		fprintf(stderr, "%s\n", e.what());
 	}
-	sort(neighbors.begin(), neighbors.end());
+	//sort(neighbors.begin(), neighbors.end());
 	return neighbors;
+};
+
+vector < pair <double, int> > Graph::getNeighbors(int node) {
+	return __NeighborTable[node];
 };
 
 void Graph::dumpGraphStatistics() {

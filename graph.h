@@ -49,6 +49,8 @@ private:
 	int *__GraphMap;
 	double *__ProbabilityMap;
 	int *__DegreeTable;
+	vector < pair<double, int> > *__NeighborTable;
+	vector < pair<double, int> > findNeighbors(int node);
 	void randomEdge(double density);
 	void calculateTransitionProbability();
 	int PositionToIndex(int x, int y);
