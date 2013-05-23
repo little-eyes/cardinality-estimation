@@ -65,7 +65,7 @@ public:
 	double getTransitionProbability(int node);
 	//void dumpGraph(char *uri);
 	//void dumpProbability(char *uri);
-	//void dumpGraphDegreeStatistics(char *uri);
+	void dumpGraphDegreeStatistics(char *uri);
 
 private:
 	int __NumberOfNodes;

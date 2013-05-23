@@ -14,9 +14,10 @@
 namespace std {
 
 /*
- * GraphNode class.
+ * GraphNode class. 
  */
 GraphNode::GraphNode(int node, int size) {
+	/* memory allocation and initialization. */
 	__NodeId = node;
 	__Neighbors = NULL;
 	__LastNeighbor = NULL;
@@ -31,6 +32,7 @@ GraphNode::GraphNode(int node, int size) {
 };
 
 GraphNode::~GraphNode() {
+	/* memory dellocation. */
 	Neighbor *head = __Neighbors;
 	while (head && head->next()) {
 		Neighbor *next = head->next();
@@ -41,10 +43,12 @@ GraphNode::~GraphNode() {
 };
 
 int GraphNode::getNodeId() {
+	/* obtain the node ID. */
 	return __NodeId;
 };
 
 void GraphNode::addNeighbor(int node) {
+	/* add a neighbor to a node, but the edge transition probability is not ready yet.*/
 	Neighbor *neighbor = new Neighbor(node, 0.0);
 	if (!__Neighbors) __Neighbors = neighbor;
 	if (!__LastNeighbor) __LastNeighbor = neighbor;
@@ -57,14 +61,17 @@ void GraphNode::addNeighbor(int node) {
 };
 
 Neighbor *GraphNode::getNeighbors() {
+	/* return the pointer to all neighbors. */
 	return __Neighbors;
 };
 
 int GraphNode::getDegree() {
+	/* return the node's degree. */
 	return __Degree;
 };
 
 void GraphNode::setTransitionProbability(int node, double probability) {
+	/* calculate the transition probability of edge (graphnode, node). */
 	Neighbor *head = __Neighbors;
 	while (head) {
 		if (head->getId() == node) {
@@ -76,6 +83,7 @@ void GraphNode::setTransitionProbability(int node, double probability) {
 };
 
 bool GraphNode::hasNeighbor(int node) {
+	/* return if graphnode has a neighbor recorded in the bitmap. */
 	return (__NeighborBitMap[node/sizeof(int)] >> (node % sizeof(int))) & 1;
 };
 
@@ -83,6 +91,7 @@ bool GraphNode::hasNeighbor(int node) {
  * Neighbors class.
  */
 Neighbor::Neighbor(int node, double probability) {
+	/* no dynmaic memory allocated. */
 	__NodeId = node;
 	__Probability = probability;
 	__Next = NULL;
@@ -116,6 +125,7 @@ void Neighbor::setTransitionProbability(double probability) {
  * Graph class.
  */
 Graph::Graph(int nodes, double density) {
+	/* allocate memory, generate random graph and calculate probability.*/
 	__NumberOfNodes = nodes;
 	try {
 		__GraphMap = new GraphNode *[nodes];
@@ -133,20 +143,24 @@ Graph::Graph(int nodes, double density) {
 };
 
 Graph::~Graph() {
+	/* dellocate memory. */
 	delete [] __GraphMap;
 };
 
 bool Graph::hasNeighbor(int node, int neighbor) {
+	/* API to check whether neighor exists. */
 	return __GraphMap[node]->hasNeighbor(neighbor);
 };
 
 void Graph::randomEdge(double density) {
+	/* Generate random edge by randomly selecting edges. */
 	int count = int(density * __NumberOfNodes * __NumberOfNodes);
 	
 	// random edges.
 	srand((unsigned)time(NULL));
 	srand((unsigned)rand());
 	while (count) {
+		--count;
 		int node_i = rand() % __NumberOfNodes;
 		int node_j = rand() % __NumberOfNodes;
 		if (hasNeighbor(node_i, node_j)) continue;
@@ -155,7 +169,6 @@ void Graph::randomEdge(double density) {
 
 		__GraphMap[node_i]->addNeighbor(node_j);
 		__GraphMap[node_j]->addNeighbor(node_i);
-		--count;
 	}
 
 	// mark the connection of itself.
@@ -172,6 +185,10 @@ void Graph::randomEdge(double density) {
 };
 
 void Graph::calculateTransitionProbability() {
+	/* calculate the transition probability, 
+	 * p(i, j) = 1.0/max(degree(i), degree(j))
+	 * p(i) = 1.0 - sum(p(i, j)). */
+
 	// calculate p(i, j).
 	for (int i = 0; i < __NumberOfNodes; ++i) {
 		int degree_i = getDegree(i);
@@ -201,10 +218,12 @@ void Graph::calculateTransitionProbability() {
 };
 
 int Graph::getDegree(int node) {
+	/* API: obtain the degrees. */
 	return __GraphMap[node]->getDegree();
 };
 
 double Graph::getTransitionProbability(int nodei, int nodej) {
+	/* API: obtain the transition probability of p(i, j). */
 	Neighbor *head = __GraphMap[nodei]->getNeighbors();
 	while (head) {
 		if (head->getId() == nodej)
@@ -215,11 +234,21 @@ double Graph::getTransitionProbability(int nodei, int nodej) {
 };
 
 double Graph::getTransitionProbability(int node) {
+	/* API: obtain the transition probability of p(i). */
 	return getTransitionProbability(node, node);
 };
 
 Neighbor *Graph::getNeighbors(int node) {
+	/* API: obtain the neighbors list pointer. */
 	return __GraphMap[node]->getNeighbors();
+};
+
+void Graph::dumpGraphDegreeStatistics(char *uri) {
+	/* API: for statistics purpose only. */
+	FILE *fp = fopen(uri, "w");
+	for (int i = 0; i < __NumberOfNodes; ++i)
+		fprintf(fp, "%d\n", __GraphMap[i]->getDegree());
+	fclose(fp);
 };
 
 }
