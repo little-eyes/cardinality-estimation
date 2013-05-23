@@ -37,17 +37,16 @@ int RandomCast::absorb(int node, int ttl) {
 };
 
 int RandomCast::nextNode(int node) {
-	vector < pair<double, int> > neighbors = __Graph->getNeighbors(node);
-	//double r = __Distribution(__Generator);
+	Neighbor *head = __Graph->getNeighbors(node);
 	double r = rand()*1.0/RAND_MAX;
-	//printf("%f\n", r);
 	double cumulation = 0.0;
-	for (int i = 0; i < (int)neighbors.size(); ++i) {
-		cumulation += neighbors[i].first;
+	while (head && head->next()) {
+		cumulation += head->getTransitionProbability();
 		if (cumulation > r)
-			return neighbors[i].second;
+			return head->getId();
+		head = head->next();
 	}
-	return neighbors[neighbors.size()-1].second;
+	return head->getId();
 };
 
 }

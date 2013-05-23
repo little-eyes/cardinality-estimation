@@ -21,17 +21,6 @@
 
 using namespace std;
 
-/*
-void display(MaxLikelihoodEstimator *estimator, int collisions, int probes) {
-	printf("\n======\n");
-	printf("Collisions: %d\nProbes: %d\n", collisions, probes);
-	printf("Estimations: d = %d, dmin = %d, dmax = %d\n",
-		estimator->estimateCardinality(collisions, probes),
-		estimator->estimateCardinalityLowerBound(collisions, probes),
-		estimator->estimateCardinalityUpperBound(collisions, probes));
-	printf("Ground truth: d = %d\n", GRAPH_NODES);
-}
-*/
 const int GRAPH_GENERATION = 0;
 const int RANDOM_CAST = 1;
 
@@ -41,22 +30,18 @@ void experiment(FILE *fp, int nodes, double density,
 	map <int, int> records;
 	int collisions = 0, probes = 0, d = 0, dmax = 0, dmin = 0;
 	int error = -1, xd = 0, xdmax = 0, xdmin = 0, xprobes = 0, xcollisions = 0;
-	clock_t start, end;
-	start = clock();
+	clock_t start = clock();
 	Graph *graph = new Graph(nodes, density);
-	end = clock();
-	fprintf(measure, "%d,%f\n", GRAPH_GENERATION, (end - start)*1.0/CLOCKS_PER_SEC);
-	//graph->dumpGraph("graph.csv");
-	//graph->dumpProbability("prob.csv");
-	//graph->dumpGraphDegreeStatistics("degree.csv");
-	//exit(0);
+	clock_t end = clock();
+	fprintf(measure, "%d,%f\n", 0, (end - start)*1.0/CLOCKS_PER_SEC);
+	fflush(measure);
+
 	RandomCast *randomcast= new RandomCast(graph);
 	MaxLikelihoodEstimator *estimator = new MaxLikelihoodEstimator();
+
+	start = clock();
 	for (int iter = 0; iter < experiments; ++iter) {
-		start = clock();
 		int node = randomcast->absorb(0, ttl);
-		end = clock();
-		fprintf(measure, "%d,%f\n", RANDOM_CAST, (end - start)*1.0/CLOCKS_PER_SEC);
 		fflush(measure);
 		if (records.find(node) == records.end()) {
 			records[node] = 0;
@@ -79,18 +64,33 @@ void experiment(FILE *fp, int nodes, double density,
 					fprintf(fp, "%d,%d,%d,%d,%d,%d\n", nodes, xprobes, 
 						xcollisions, xd, xdmin, xdmax);
 					fflush(fp);
+					end = clock();
+					fprintf(measure, "%d,%f\n", 1, (end - start)*1.0/CLOCKS_PER_SEC);
+					fflush(measure);
+					start = clock();
 					delete randomcast;
 					delete graph;
 					delete estimator;
+					end = clock();
+					fprintf(measure, "%d,%f\n", 3, (end - start)*1.0/CLOCKS_PER_SEC);
+					fflush(measure);
 					return;
 				}
 			}
 		}
 		++probes;
 	}
+	end = clock();
+	fprintf(measure, "%d,%f\n", 1, (end - start)*1.0/CLOCKS_PER_SEC);
+	fflush(measure);
+
+	start = clock();
 	d = estimator->estimateCardinality(collisions, probes);
 	dmax = estimator->estimateCardinalityUpperBound(collisions, probes);
 	dmin = estimator->estimateCardinalityLowerBound(collisions, probes);
+	end = clock();
+	fprintf(measure, "%d,%f\n", 2, (end - start)*1.0/CLOCKS_PER_SEC);
+
 	if (error < 0 || abs(nodes - d) < error) {
 		xd = d;
 		xdmax = dmax;
@@ -100,10 +100,14 @@ void experiment(FILE *fp, int nodes, double density,
 	}
 	fprintf(fp, "%d,%d,%d,%d,%d,%d\n", nodes, xprobes, xcollisions, xd, xdmin, xdmax);
 	fflush(fp);
-	//display(estimator, collisions, probes);
+	
+	start = clock();
 	delete graph;
 	delete randomcast;
 	delete estimator;
+	end = clock();
+	fprintf(measure, "%d,%f\n", 3, (end - start)*1.0/CLOCKS_PER_SEC);
+	fflush(measure);
 }
 
 int main(int argc, char **argv) {
@@ -120,9 +124,12 @@ int main(int argc, char **argv) {
 	FILE *data = fopen(name, "w");
 	strcat(name, ".perf");
 	FILE *measure = fopen(name, "w");
-	for (int n = 0; n < 500; ++n) {
+	for (int n = 0; n < 1; ++n) {
+		clock_t s = clock();
 		experiment(data, nodes, density, nodes, nodes, 0.95, measure);
+		clock_t e = clock();
 		printf("Experiment %d ... done!\n", n);
+		fprintf(measure, "%d,%f\n", -1, (e-s)*1.0/CLOCKS_PER_SEC);
 	}
 	fclose(data);
 	fclose(measure);

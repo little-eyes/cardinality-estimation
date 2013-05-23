@@ -13,48 +13,65 @@
 
 namespace std {
 
-class GraphNode {
-	
+class Neighbor {
+
 public:
-	GraphNode(int node);
-	void setTransitionProbability(double p);
+	Neighbor(int node, double probability);
+	~Neighbor();
+	int getId();
 	double getTransitionProbability();
-	int getNodeId();
+	void setTransitionProbability(double probability);
+	void append(Neighbor *next);
+	Neighbor *next();
 
 private:
 	int __NodeId;
 	double __Probability;
+	Neighbor *__Next;
+};
+
+class GraphNode {
+	
+public:
+	GraphNode(int node, int size);
+	~GraphNode();
+	void addNeighbor(int node);
+	void setTransitionProbability(int node, double probability);
+	Neighbor *getNeighbors();
+	int getDegree();
+	int getNodeId();
+	bool hasNeighbor(int node);
+
+private:
+	int __NodeId;
+	Neighbor *__Neighbors;
+	Neighbor *__LastNeighbor;
+	int *__NeighborBitMap;
+	int __Degree;
 };
 
 class Graph {
 
 public:
-	Graph(int n, double density);
+	Graph(int nodes, double density);
 	~Graph();
 	/*
 	 * Graph class public APIs.
 	 */
 	int getDegree(int node);
-	vector < pair<double, int> > getNeighbors(int node);
+	Neighbor *getNeighbors(int node);
 	bool hasNeighbor(int node, int neighbor);
 	double getTransitionProbability(int nodei, int nodej);
 	double getTransitionProbability(int node);
-	void dumpGraph(char *uri);
-	void dumpProbability(char *uri);
-	void dumpGraphDegreeStatistics(char *uri);
+	//void dumpGraph(char *uri);
+	//void dumpProbability(char *uri);
+	//void dumpGraphDegreeStatistics(char *uri);
 
 private:
 	int __NumberOfNodes;
-	//vector < vector<GraphNode *> > __GraphMap;
-	//vector <GraphNode *> __Nodes;
-	int *__GraphMap;
-	double *__ProbabilityMap;
-	int *__DegreeTable;
-	vector < pair<double, int> > *__NeighborTable;
-	vector < pair<double, int> > findNeighbors(int node);
+	GraphNode **__GraphMap;
 	void randomEdge(double density);
 	void calculateTransitionProbability();
-	int PositionToIndex(int x, int y);
 };
 
 }
