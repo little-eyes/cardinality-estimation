@@ -9,6 +9,8 @@
 #define _RANDOMCAST_H
 
 #include <vector>
+#include <cstdio>
+#include <cstdlib>
 #include "graph.h"
 
 
@@ -26,7 +28,19 @@ private:
 	int nextNode(int node);
 	FILE *__TTLLogging;
 };
-	
+
+/*
+ * Customized Random Number Generator.
+ */
+class RandomGenerator {
+
+public:
+	RandomGenerator();
+	~RandomGenerator();
+	int getRandomInteger();
+	double getRandomDouble();
+};
+
 }
 
 #endif

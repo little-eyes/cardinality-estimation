@@ -26,6 +26,7 @@ RandomCast::~RandomCast() {
 };
 
 int RandomCast::absorb(int node, int ttl) {
+	/* find a destination node from basestation within TTL jumps. */
 	while (ttl--) {
 		int next = nextNode(node);
 		if (next == node && node > 0) break;
@@ -37,6 +38,7 @@ int RandomCast::absorb(int node, int ttl) {
 };
 
 int RandomCast::nextNode(int node) {
+	/* select the next jump based on the given probability distribution. */
 	Neighbor *head = __Graph->getNeighbors(node);
 	double r = rand()*1.0/RAND_MAX;
 	double cumulation = 0.0;
